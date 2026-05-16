@@ -1,0 +1,12 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pt
+
+# Dataset (too large for GitHub)
+backend/data/raw/
+backend/runs/
+
+# Frontend
+frontend/node_modules/

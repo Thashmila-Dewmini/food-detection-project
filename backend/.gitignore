@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.env
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Model Weights
+*.pt
+
+# YOLO Runs
+runs/
+
+# Outputs
+outputs/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+
+# Environment variables
+.env
+
+# Temporary files
+temp/

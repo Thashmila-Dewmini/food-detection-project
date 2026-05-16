@@ -1,0 +1,242 @@
+{
+  "_note": "Nutritional values per 100g. Based on USDA FoodData Central with Sri Lankan cooking adjustments. All values are estimates.",
+  
+  "Basmathi Rice": {
+    "calories_per_100g": 130,
+    "protein_per_100g": 2.7,
+    "carbs_per_100g": 28.2,
+    "fat_per_100g": 0.3,
+    "default_serving_g": 200
+  },
+  "Bean Curry": {
+    "calories_per_100g": 95,
+    "protein_per_100g": 5.5,
+    "carbs_per_100g": 12.0,
+    "fat_per_100g": 3.0,
+    "default_serving_g": 150
+  },
+  "Beetroot Curry": {
+    "calories_per_100g": 75,
+    "protein_per_100g": 1.8,
+    "carbs_per_100g": 10.5,
+    "fat_per_100g": 3.2,
+    "default_serving_g": 100
+  },
+  "Bitter Gourd Curry": {
+    "calories_per_100g": 65,
+    "protein_per_100g": 2.0,
+    "carbs_per_100g": 7.0,
+    "fat_per_100g": 3.5,
+    "default_serving_g": 100
+  },
+  "Boiled Eggs": {
+    "calories_per_100g": 155,
+    "protein_per_100g": 13.0,
+    "carbs_per_100g": 1.1,
+    "fat_per_100g": 11.0,
+    "default_serving_g": 100
+  },
+  "Brinjal": {
+    "calories_per_100g": 80,
+    "protein_per_100g": 1.5,
+    "carbs_per_100g": 8.0,
+    "fat_per_100g": 4.5,
+    "default_serving_g": 100
+  },
+  "Capsicum Curry": {
+    "calories_per_100g": 70,
+    "protein_per_100g": 1.2,
+    "carbs_per_100g": 7.5,
+    "fat_per_100g": 3.8,
+    "default_serving_g": 100
+  },
+  "Cashew Nut Curry": {
+    "calories_per_100g": 185,
+    "protein_per_100g": 5.0,
+    "carbs_per_100g": 12.0,
+    "fat_per_100g": 13.5,
+    "default_serving_g": 120
+  },
+  "Cauliflower Curry": {
+    "calories_per_100g": 72,
+    "protein_per_100g": 2.2,
+    "carbs_per_100g": 7.8,
+    "fat_per_100g": 3.5,
+    "default_serving_g": 100
+  },
+  "Chicken": {
+    "calories_per_100g": 215,
+    "protein_per_100g": 25.0,
+    "carbs_per_100g": 4.0,
+    "fat_per_100g": 11.0,
+    "default_serving_g": 150
+  },
+  "Coconut Relish": {
+    "calories_per_100g": 180,
+    "protein_per_100g": 2.0,
+    "carbs_per_100g": 8.0,
+    "fat_per_100g": 16.0,
+    "default_serving_g": 50
+  },
+  "Cucumber": {
+    "calories_per_100g": 16,
+    "protein_per_100g": 0.7,
+    "carbs_per_100g": 3.6,
+    "fat_per_100g": 0.1,
+    "default_serving_g": 80
+  },
+  "Cutlet": {
+    "calories_per_100g": 220,
+    "protein_per_100g": 10.0,
+    "carbs_per_100g": 18.0,
+    "fat_per_100g": 12.0,
+    "default_serving_g": 100
+  },
+  "Dhal Curry": {
+    "calories_per_100g": 110,
+    "protein_per_100g": 7.0,
+    "carbs_per_100g": 16.0,
+    "fat_per_100g": 2.5,
+    "default_serving_g": 150
+  },
+  "Dried Halmasso": {
+    "calories_per_100g": 250,
+    "protein_per_100g": 40.0,
+    "carbs_per_100g": 0.0,
+    "fat_per_100g": 10.0,
+    "default_serving_g": 50
+  },
+  "Fish AmbulThiyal": {
+    "calories_per_100g": 145,
+    "protein_per_100g": 22.0,
+    "carbs_per_100g": 3.0,
+    "fat_per_100g": 5.0,
+    "default_serving_g": 100
+  },
+  "Fish Curry": {
+    "calories_per_100g": 130,
+    "protein_per_100g": 18.0,
+    "carbs_per_100g": 5.0,
+    "fat_per_100g": 5.5,
+    "default_serving_g": 150
+  },
+  "Fried Potato": {
+    "calories_per_100g": 312,
+    "protein_per_100g": 3.4,
+    "carbs_per_100g": 41.0,
+    "fat_per_100g": 15.0,
+    "default_serving_g": 100
+  },
+  "Fried Sprat": {
+    "calories_per_100g": 280,
+    "protein_per_100g": 28.0,
+    "carbs_per_100g": 2.0,
+    "fat_per_100g": 18.0,
+    "default_serving_g": 75
+  },
+  "Grilled Fish": {
+    "calories_per_100g": 165,
+    "protein_per_100g": 24.0,
+    "carbs_per_100g": 0.0,
+    "fat_per_100g": 7.5,
+    "default_serving_g": 150
+  },
+  "Lunu Miris": {
+    "calories_per_100g": 95,
+    "protein_per_100g": 2.5,
+    "carbs_per_100g": 10.0,
+    "fat_per_100g": 5.5,
+    "default_serving_g": 30
+  },
+  "Mallum": {
+    "calories_per_100g": 60,
+    "protein_per_100g": 3.0,
+    "carbs_per_100g": 6.0,
+    "fat_per_100g": 3.0,
+    "default_serving_g": 80
+  },
+  "Mango Curry": {
+    "calories_per_100g": 85,
+    "protein_per_100g": 1.0,
+    "carbs_per_100g": 14.0,
+    "fat_per_100g": 3.0,
+    "default_serving_g": 100
+  },
+  "Meat Curry": {
+    "calories_per_100g": 180,
+    "protein_per_100g": 20.0,
+    "carbs_per_100g": 5.0,
+    "fat_per_100g": 9.0,
+    "default_serving_g": 150
+  },
+  "Omelet": {
+    "calories_per_100g": 185,
+    "protein_per_100g": 12.0,
+    "carbs_per_100g": 1.5,
+    "fat_per_100g": 14.5,
+    "default_serving_g": 100
+  },
+  "Pappadam": {
+    "calories_per_100g": 380,
+    "protein_per_100g": 18.0,
+    "carbs_per_100g": 57.0,
+    "fat_per_100g": 10.0,
+    "default_serving_g": 20
+  },
+  "Pea Curry": {
+    "calories_per_100g": 100,
+    "protein_per_100g": 6.0,
+    "carbs_per_100g": 14.0,
+    "fat_per_100g": 2.5,
+    "default_serving_g": 120
+  },
+  "Polos Ambula": {
+    "calories_per_100g": 90,
+    "protein_per_100g": 2.5,
+    "carbs_per_100g": 12.0,
+    "fat_per_100g": 4.0,
+    "default_serving_g": 100
+  },
+  "Potato Milky Curry": {
+    "calories_per_100g": 105,
+    "protein_per_100g": 2.0,
+    "carbs_per_100g": 14.0,
+    "fat_per_100g": 5.0,
+    "default_serving_g": 150
+  },
+  "Pumpkin Curry": {
+    "calories_per_100g": 70,
+    "protein_per_100g": 1.5,
+    "carbs_per_100g": 10.0,
+    "fat_per_100g": 3.0,
+    "default_serving_g": 120
+  },
+  "Shrimp Curry": {
+    "calories_per_100g": 120,
+    "protein_per_100g": 16.0,
+    "carbs_per_100g": 4.5,
+    "fat_per_100g": 5.0,
+    "default_serving_g": 130
+  },
+  "Soya Curry": {
+    "calories_per_100g": 115,
+    "protein_per_100g": 10.0,
+    "carbs_per_100g": 9.0,
+    "fat_per_100g": 4.5,
+    "default_serving_g": 130
+  },
+  "Vegetable Salad": {
+    "calories_per_100g": 35,
+    "protein_per_100g": 1.5,
+    "carbs_per_100g": 6.0,
+    "fat_per_100g": 0.5,
+    "default_serving_g": 120
+  },
+  "White Rice": {
+    "calories_per_100g": 130,
+    "protein_per_100g": 2.7,
+    "carbs_per_100g": 28.2,
+    "fat_per_100g": 0.3,
+    "default_serving_g": 200
+  }
+}
