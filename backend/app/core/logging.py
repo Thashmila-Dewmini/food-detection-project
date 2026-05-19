@@ -28,3 +28,6 @@ def setup_logger(name: str = "nutritrack") -> logging.Logger:
 
 # shared module-level logger instance
 logger = setup_logger()
+
+
+# python logger: print structured debugging and application messages to the terminal

@@ -1,12 +1,26 @@
-# Python
+# ── Python ──────────────────────────────────────────
 backend/venv/
 backend/__pycache__/
 backend/**/__pycache__/
-backend/*.pt
+backend/*.pt                  # model weights (too large for GitHub)
+backend/*.pyc
+backend/.env                  # secrets
 
-# Dataset (too large for GitHub)
+# Dataset and training outputs (too large for GitHub)
 backend/data/raw/
 backend/runs/
+backend/outputs/
+backend/app/data/feedback_log.jsonl   # user feedback data
 
-# Frontend
+# ── Frontend (React Native / Expo) ───────────────────
 frontend/node_modules/
+frontend/.expo/
+frontend/dist/
+frontend/build/
+frontend/.env
+
+# ── General ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+.vscode/settings.json
