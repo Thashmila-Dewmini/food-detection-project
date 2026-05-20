@@ -10,7 +10,7 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.content}>
-        <Text style={styles.appName}>NutriTrack</Text>
+        <Text style={styles.appName}>NutriSight</Text>
         <Text style={styles.greeting}>Hi!👋</Text>
         <Text style={styles.description}>
           Scan your meals and instantly discover nutrition insights.
