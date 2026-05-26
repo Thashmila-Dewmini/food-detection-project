@@ -69,7 +69,7 @@ export default function EditResultsScreen({ navigation, route }) {
   });
   const [editingIndex, setEditingIndex] = useState(null);
   const [portionInput, setPortionInput] = useState("");
-  const [showAddInput, setShowAddInput] = useState(false);
+  // const [showAddInput, setShowAddInput] = useState(false);
   const [customFood, setCustomFood] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -258,35 +258,7 @@ export default function EditResultsScreen({ navigation, route }) {
             </View>
           ))}
 
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowAddInput(!showAddInput)}
-          >
-            <Text style={styles.addButtonText}>+ Add Another Item</Text>
-          </TouchableOpacity>
-          {showAddInput && (
-            <View style={styles.customInputContainer}>
-              <TextInput
-                style={styles.customInput}
-                placeholder="Enter food item"
-                value={customFood}
-                onChangeText={setCustomFood}
-              />
-
-              <TouchableOpacity
-                style={styles.customAddButton}
-                onPress={() => {
-                  if (customFood.trim().length > 0) {
-                    addItem(customFood);
-                    setCustomFood("");
-                    setShowAddInput(false);
-                  }
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "600" }}>Add</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          
         </View>
 
         {/*search*/}
