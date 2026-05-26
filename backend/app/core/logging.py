@@ -1,7 +1,7 @@
 import logging
 import sys
 
-def setup_logger(name: str = "nutritrack") -> logging.Logger:
+def setup_logger(name: str = "nutriSight") -> logging.Logger:
 
     logger = logging.getLogger(name)
 
@@ -20,7 +20,6 @@ def setup_logger(name: str = "nutritrack") -> logging.Logger:
     )
     
     handler.setFormatter(formatter)
-
     logger.addHandler(handler)
 
     return logger

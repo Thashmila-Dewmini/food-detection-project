@@ -1,5 +1,5 @@
-from PIL import Image
-import io
+import cv2
+import numpy as np
 from app.core.config import settings
 from app.core.logging import logger
 
@@ -25,20 +25,23 @@ def validate_image_bytes(file_bytes: bytes, content_type: str):
         return False, "Image file is too large (maximum 10 MB)."
 
     # Try to open and verify image integrity
-    try:
-        img = Image.open(io.BytesIO(file_bytes))
-        img.verify()   # Checks for corruption without fully decoding
-    except Exception as e:
-        logger.warning(f"Image integrity check failed: {e}")
-        return False, "Image file appears to be corrupted or unreadable."
+    nparr = np.frombuffer(file_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        logger.warning("cv2 could not decode image — file may be corrupted")
+        return (False, "Image file appears to be corrupted or unreadable.")
 
     return True, ""
 
 
-def load_image(file_bytes: bytes) -> Image.Image:
+def get_image_dimensions(file_bytes: bytes):
     """
-    Loads and converts image to RGB for YOLO inference.
-    Must be called after validate_image_bytes passes.
+    Returns width and height of image using cv2
+    used for bounding box area ratio calculation in nutrition service.
     """
-    img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
-    return img
+    nparr = np.frombuffer(file_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        return (640, 640)
+    h, w = img.shape[:2]
+    return (w, h)

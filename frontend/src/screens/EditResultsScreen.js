@@ -9,7 +9,7 @@ import {
   TextInput,
   Alert,
 } from "react-native";
-import { submitFeedback } from "../services/api";
+import { submitFeedback, recalculateNutrition } from "../services/api";
 import { saveMeal } from "../storage/mealStorage";
 import { COLORS } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
@@ -56,13 +56,70 @@ const FOOD_CLASSES = [
 export default function EditResultsScreen({ navigation, route }) {
   const { result, imageUri } = route.params;
   const [items, setItems] = useState(
-    result.detected_items.map((i) => ({ ...i })),
+    result.detected_items.map((i) => ({
+      ...i,
+    })),
   );
+  const [summary, setSummary] = useState({
+    total_calories: result.total_calories,
+    total_protein_g: result.total_protein_g,
+    total_carbs_g: result.total_carbs_g,
+    total_fat_g: result.total_fat_g,
+    calorie_impact: result.calorie_impact,
+  });
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [portionInput, setPortionInput] = useState("");
+  const [showAddInput, setShowAddInput] = useState(false);
+  const [customFood, setCustomFood] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
-  const removeItem = (index) => {
-    setItems(items.filter((_, i) => i !== index));
+  const removeItem = async (index) => {
+
+  const updated =
+    items.filter((_, i) => i !== index);
+
+  // update UI immediately (optimistic) then request server recalculation
+  setItems(updated);
+  try {
+    await handleRecalculate(updated);
+  } catch (_) {
+    // if server recalc fails, keep optimistic UI but log handled earlier
+  }
+};
+
+  const handleRecalculate = async (updatedItems) => {
+    try {
+
+      const payload = updatedItems.map((item) => ({
+        item_name: item.item_name,
+        estimated_weight_g: item.estimated_weight_g,
+      }));
+
+      const response = await recalculateNutrition(payload);
+
+      setItems(response.detected_items);
+
+      setSummary({
+        total_calories: response.total_calories,
+        total_protein_g: response.total_protein_g,
+        total_carbs_g: response.total_carbs_g,
+        total_fat_g: response.total_fat_g,
+        calorie_impact: response.calorie_impact,
+      });
+    } catch (error) {
+      console.log(
+        "Failed to recalculate: ", error
+      );
+    }
+  };
+
+  const updatePortion = async (index, newWeight) => {
+    const updated = [...items];
+    updated[index].estimated_weight_g = newWeight;
+
+    await handleRecalculate(updated);
+    setEditingIndex(null);
   };
 
   const handleSearch = (text) => {
@@ -78,31 +135,27 @@ export default function EditResultsScreen({ navigation, route }) {
     }
   };
 
-  const addItem = (foodName) => {
+  const addItem = async (foodName) => {
     // add with default nutrition values
-    setItems([
+    const updated = [
       ...items,
       {
         item_name: foodName,
-        confidence_score: 100,
         estimated_weight_g: 100,
-        calories: 100,
-        protein_g: 3,
-        carbs_g: 15,
-        fat_g: 3,
-        low_confidence_warning: false,
       },
-    ]);
+    ];
+
+    // optimistic update so the new item shows immediately
+    setItems(updated);
+    try {
+      await handleRecalculate(updated);
+    } catch (_) {
+      // recalc errors are logged in API helper
+    }
+
     setSearchQuery("");
     setSearchResults([]);
   };
-
-  const totalCalories = items.reduce((s, i) => s + i.calories, 0);
-  const totalProtein = items.reduce((s, i) => s + i.protein_g, 0);
-  const totalCarbs = items.reduce((s, i) => s + i.carbs_g, 0);
-  const totalFat = items.reduce((s, i) => s + i.fat_g, 0);
-  const impact =
-    totalCalories < 400 ? "Low" : totalCalories <= 600 ? "Medium" : "High";
 
   const handleSave = async () => {
     try {
@@ -112,11 +165,11 @@ export default function EditResultsScreen({ navigation, route }) {
     await saveMeal({
       imageUri,
       detected_items: items,
-      total_calories: Math.round(totalCalories * 10) / 10,
-      total_protein_g: Math.round(totalProtein * 10) / 10,
-      total_carbs_g: Math.round(totalCarbs * 10) / 10,
-      total_fat_g: Math.round(totalFat * 10) / 10,
-      calorie_impact: impact,
+      total_calories: summary.total_calories,
+      total_protein_g: summary.total_protein_g,
+      total_carbs_g: summary.total_carbs_g,
+      total_fat_g: summary.total_fat_g,
+      calorie_impact: summary.calorie_impact,
     });
 
     Alert.alert("Saved", "Your corrections have been saved.", [
@@ -134,33 +187,106 @@ export default function EditResultsScreen({ navigation, route }) {
         showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
           </TouchableOpacity>
-
-          <Text style={styles.title}>Edit Results</Text>
+          <Text style={styles.headerTitle}>Edit Results</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Detected Items</Text>
           {items.map((item, i) => (
-            <View key={i} style={styles.itemRow}>
-              <Text style={styles.itemName}>{item.item_name}</Text>
-              <Text style={styles.itemCalories}>+ {item.calories} kcal -</Text>
-              <TouchableOpacity onPress={() => removeItem(i)}>
-                <Icon name="delete" size={15} color="#900" />
-              </TouchableOpacity>
+            <View key={i} style={styles.itemContainer}>
+              {/* Top row */}
+              <View style={styles.itemRow}>
+                {/* food name */}
+                <Text style={styles.itemName}>{item.item_name}</Text>
+
+                {/* portion */}
+                <Text style={styles.portionText}>
+                  {item.estimated_weight_g} g
+                </Text>
+
+                {/* edit button */}
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => {
+                    setEditingIndex(i);
+                    setPortionInput(String(item.estimated_weight_g));
+                  }}
+                >
+                  <Text style={styles.editText}>Edit</Text>
+                </TouchableOpacity>
+
+                {/* delete button */}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => removeItem(i)}
+                >
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Edit input */}
+              {editingIndex === i && (
+                <View style={styles.editRow}>
+                  <TextInput
+                    style={styles.portionInput}
+                    keyboardType="numeric"
+                    value={portionInput}
+                    onChangeText={setPortionInput}
+                    placeholder="Enter grams"
+                  />
+
+                  <TouchableOpacity
+                    style={styles.savePortionButton}
+                    onPress={() => {
+                      const grams = parseFloat(portionInput);
+
+                      if (!isNaN(grams) && grams > 0) {
+                        updatePortion(i, grams);
+                        setEditingIndex(null);
+                      }
+                    }}
+                  >
+                    <Text style={styles.savePortionText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           ))}
 
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddInput(!showAddInput)}
+          >
             <Text style={styles.addButtonText}>+ Add Another Item</Text>
           </TouchableOpacity>
+          {showAddInput && (
+            <View style={styles.customInputContainer}>
+              <TextInput
+                style={styles.customInput}
+                placeholder="Enter food item"
+                value={customFood}
+                onChangeText={setCustomFood}
+              />
+
+              <TouchableOpacity
+                style={styles.customAddButton}
+                onPress={() => {
+                  if (customFood.trim().length > 0) {
+                    addItem(customFood);
+                    setCustomFood("");
+                    setShowAddInput(false);
+                  }
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "600" }}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/*search*/}
@@ -194,22 +320,22 @@ export default function EditResultsScreen({ navigation, route }) {
           <View style={styles.macroRow}>
             <MacroBox
               label="Kcal"
-              value={Math.round(totalCalories)}
+              value={Math.round(summary.total_calories)}
               color="#FF9800"
             />
             <MacroBox
               label="protein"
-              value={`${Math.round(totalProtein)}g`}
+              value={`${Math.round(summary.total_protein_g)}g`}
               color="#4CAF50"
             />
             <MacroBox
               label="carbs"
-              value={`${Math.round(totalCarbs)}g`}
+              value={`${Math.round(summary.total_carbs_g)}g`}
               color="#2196F3"
             />
             <MacroBox
               label="fat"
-              value={`${Math.round(totalFat)}g`}
+              value={`${Math.round(summary.total_fat_g)}g`}
               color="#E91E63"
             />
           </View>
@@ -245,20 +371,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  headerRow: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    marginTop: 20,
-    marginBottom: 70,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 15,
   },
-  backButton: {
-    position: "absolute",
-    left: 0,
-    padding: 12,
-  },
-  title: {
+  headerTitle: {
     fontSize: 25,
     fontWeight: "bold",
     color: COLORS.textDark,
@@ -266,7 +387,7 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: COLORS.card,
     marginHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 20,
     borderRadius: 16,
     padding: 16,
     shadowColor: "#000",
@@ -278,7 +399,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "bold",
     color: COLORS.textDark,
-    marginBottom: 12,
+    marginBottom: 15,
   },
   itemRow: {
     flexDirection: "row",
@@ -292,10 +413,131 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
     fontSize: 14,
   },
-  itemCalories: {
+  itemPortion: {
     color: COLORS.textMedium,
     fontSize: 13,
     marginRight: 12,
+  },
+  itemContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingVertical: 10,
+  },
+
+  itemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  itemName: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+
+  portionText: {
+    fontSize: 13,
+    color: COLORS.textMedium,
+    marginRight: 10,
+  },
+
+  editButton: {
+    backgroundColor: "#E3F2FD",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+
+  editText: {
+    color: "#1976D2",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  deleteButton: {
+    backgroundColor: "#FFEBEE",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+
+  deleteText: {
+    color: "#D32F2F",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  editRow: {
+    flexDirection: "row",
+    marginTop: 10,
+    gap: 10,
+  },
+  qtyButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  qtyButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  qtyText: {
+    marginHorizontal: 10,
+    fontSize: 15,
+    fontWeight: "600",
+    color: COLORS.textDark,
+  },
+
+  customInputContainer: {
+    flexDirection: "row",
+    marginTop: 12,
+    gap: 10,
+  },
+
+  customInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: COLORS.textDark,
+  },
+
+  customAddButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 18,
+    justifyContent: "center",
+    borderRadius: 10,
+  },
+
+  portionInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: COLORS.textDark,
+  },
+
+  savePortionButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 18,
+    justifyContent: "center",
+    borderRadius: 10,
+  },
+
+  savePortionText: {
+    color: "#fff",
+    fontWeight: "600",
   },
   addButton: {
     marginTop: 12,
@@ -365,6 +607,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: "row",
     gap: 10,
+    marginTop: 20,
     marginHorizontal: 16,
   },
   resetButton: {

@@ -8,6 +8,8 @@ import ImagePreviewScreean from "./src/screens/ImagePreviewScreen";
 import LoadingScreen from "./src/screens/LoadingScreen";
 import ResultsScreen from "./src/screens/ResultsScreen";
 import EditResultsScreen from "./src/screens/EditResultsScreen";
+import HistoryScreen     from './src/screens/HistoryScreen';
+import MealDetailScreen  from './src/screens/MealDetailScreen';
 import ErrorScreen from "./src/screens/ErrorScreen";
 
 const Stack = createNativeStackNavigator();
@@ -29,6 +31,8 @@ export default function App() {
         <Stack.Screen name="Results" component={ResultsScreen}/>
         <Stack.Screen name="Error" component={ErrorScreen}/>
         <Stack.Screen name="EditResults" component={EditResultsScreen}/>
+        <Stack.Screen name="History"      component={HistoryScreen} />
+        <Stack.Screen name="MealDetail"   component={MealDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   )

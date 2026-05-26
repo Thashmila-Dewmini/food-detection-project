@@ -28,3 +28,29 @@ export const submitFeedback = async (imageId, originalItems, correctedItems ) =>
   });
   return response.json();
 };
+
+export async function recalculateNutrition(items) {
+  try {
+    const response = await fetch(API_ENDPOINTS.recalculate, {
+      method: 'POST',
+      headers: { "Content-Type": "application/json"},
+      body: JSON.stringify({
+        items,
+      })
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => null);
+      console.error(`Recalculate API returned ${response.status}`, text);
+      throw new Error(`Recalculate API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "Recalculate API Error!",
+      error
+    );
+    throw error;
+  }
+}

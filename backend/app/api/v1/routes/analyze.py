@@ -1,9 +1,10 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.schemas.response import AnalyzeResponse, DetectedItem, BoundingBox
-from app.services import yolo_service, nutrition_service
-from app.utils.image_utils import validate_image_bytes, load_image
+from app.services.yolo_service import run_detection_from_bytes
+from app.services import nutrition_service
+from app.utils.image_utils import validate_image_bytes, get_image_dimensions
 from app.core.logging import logger
-import uuid
+
 
 router = APIRouter()
 
@@ -43,17 +44,12 @@ async def analyze_food_image(image: UploadFile = File(...)):
             calorie_impact=None
         )
     
-    # step 3: Load image for inference
-    try:
-        pil_image = load_image(file_bytes)
-        image_width, image_height = pil_image.size
-    except Exception as e:
-        logger.error(f"Failed to load image for inference: {e}")
-        raise HTTPException(status_code=500, detail="Failed to process image.")
+    # step 3: Get image dimensions for nutrition portion estimation
+    image_width, image_height = get_image_dimensions(file_bytes)
     
     # step 4: Run YOLOv8 detection
     try:
-        detection_result = yolo_service.run_detection(pil_image)
+        detection_result = run_detection_from_bytes(file_bytes)
     except Exception as e:
         logger.error(f"YOLO inference failed: {e}")
         return AnalyzeResponse(
@@ -108,22 +104,22 @@ async def analyze_food_image(image: UploadFile = File(...)):
 
         nutrition_list.append(nutrition)
 
-        # step 7: calculate totals and calorie impact
-        totals = nutrition_service.calculate_totals(nutrition_list)
+    # step 7: calculate totals and calorie impact (after processing all items)
+    totals = nutrition_service.calculate_totals(nutrition_list)
 
-        logger.info(
-            f"Analysis complete. Items: {len(detected_items)}, "
-            f"Total kcal: {totals['total_calories']}, "
-            f"Impact: {totals['calorie_impact']}"
-        )
+    logger.info(
+        f"Analysis complete. Items: {len(detected_items)}, "
+        f"Total kcal: {totals['total_calories']}, "
+        f"Impact: {totals['calorie_impact']}"
+    )
 
-        return AnalyzeResponse(
-            status="success",
-            message="Food items detected successfully.",
-            detected_items=detected_items,
-            total_calories=totals["total_calories"],
-            total_protein_g=totals["total_protein_g"],
-            total_carbs_g=totals["total_carbs_g"],
-            total_fat_g=totals["total_fat_g"],
-            calorie_impact=totals["calorie_impact"]
-        )
+    return AnalyzeResponse(
+        status="success",
+        message="Food items detected successfully.",
+        detected_items=detected_items,
+        total_calories=totals["total_calories"],
+        total_protein_g=totals["total_protein_g"],
+        total_carbs_g=totals["total_carbs_g"],
+        total_fat_g=totals["total_fat_g"],
+        calorie_impact=totals["calorie_impact"]
+    )

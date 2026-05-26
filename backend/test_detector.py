@@ -6,7 +6,7 @@ detector = FoodDetector(
 
 
 results = detector.detect(
-    "data/raw/sri-lankan-food-dataset/test/images/img1.jpg"
+    "data/raw/sri-lankan-food-dataset/test/images/test1.jpeg"
 )
 
 print(results)

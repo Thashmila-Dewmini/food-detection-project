@@ -43,3 +43,13 @@ class FeedbackResponse(BaseModel):
     status: str
     message: str
 
+
+class RecalculateResponse(BaseModel):
+    status: str
+    message: str
+    detected_items: List[DetectedItem]
+    total_calories: float
+    total_protein_g: float
+    total_carbs_g: float
+    total_fat_g: float
+    calorie_impact: str

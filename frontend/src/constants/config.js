@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
   analyze: `${API_BASE_URL}/api/v1/analyze`,
   health: `${API_BASE_URL}/api/v1/health`,
   feedback: `${API_BASE_URL}/api/v1/feedback`,
+  recalculate: `${API_BASE_URL}/api/v1/recalculate/`
 };
 
 export const CALORIE_IMPACT_COLORS = {

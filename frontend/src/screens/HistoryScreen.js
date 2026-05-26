@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { getMeals } from "../storage/mealStorage";
 import { COLORS } from "../constants/theme";
 import { CALORIE_IMPACT_COLORS } from "../constants/config";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function HistoryScreen({ navigation }) {
   const [meals, setMeals] = useState([]);
@@ -21,7 +22,7 @@ export default function HistoryScreen({ navigation }) {
       getMeals().then(setMeals);
     }, []),
   );
-
+ 
   // Empty state
   if (meals.length === 0) {
     return (
@@ -39,16 +40,16 @@ export default function HistoryScreen({ navigation }) {
         </View>
 
         <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>
-                No meals scanned yet.
-                Tap Scan your meal to get started
-            </Text>
+          <Text style={styles.emptyText}>
+            No meals scanned yet. Tap Scan your meal to get started
+          </Text>
 
-            <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => navigation.navigate('Home')}>
-                <Text style={styles.backBtnText}>Back to Home</Text>
-            </TouchableOpacity>
+            onPress={() => navigation.navigate("Home")}
+          >
+            <Text style={styles.backBtnText}>Back to Home</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -57,43 +58,69 @@ export default function HistoryScreen({ navigation }) {
   // List state
   return (
     <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>History List</Text>
-        <FlatList
+      <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
+          </TouchableOpacity>
+
+          <Text style={styles.title}>History List</Text>
+          <View style={{ width: 24 }} />
+        </View>
+      <FlatList
         data={meals}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
         renderItem={({ item }) => {
-          const impactColor = CALORIE_IMPACT_COLORS[item.calorie_impact] || COLORS.textMedium;
+          const impactColor =
+            CALORIE_IMPACT_COLORS[item.calorie_impact] || COLORS.textMedium;
           const dateObj = new Date(item.date);
-          const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
-          const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const foodNames = item.detected_items?.map(i => i.item_name).join(', ') || '';
- 
+          const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
+          const timeStr = dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const foodNames =
+            item.detected_items?.map((i) => i.item_name).join(", ") || "";
+
           return (
             <TouchableOpacity
               style={styles.mealCard}
-              onPress={() => navigation.navigate('MealDetail', { meal: item })}
+              onPress={() => navigation.navigate("MealDetail", { meal: item })}
             >
               {/* Thumbnail */}
               <View style={styles.thumbContainer}>
-                {item.imageUri
-                  ? <Image source={{ uri: item.imageUri }} style={styles.thumb} />
-                  : <Text style={styles.thumbPlaceholder}>🖼️</Text>
-                }
+                {item.imageUri ? (
+                  <Image source={{ uri: item.imageUri }} style={styles.thumb} />
+                ) : (
+                  <Text style={styles.thumbPlaceholder}>🖼️</Text>
+                )}
               </View>
- 
+
               {/* Info */}
               <View style={styles.mealInfo}>
-                <Text style={styles.mealDateTime}>{dateStr}  {timeStr}</Text>
-                <Text style={styles.mealFoods} numberOfLines={1}>{foodNames}</Text>
+                <Text style={styles.mealDateTime}>
+                  {dateStr} {timeStr}
+                </Text>
+                <Text style={styles.mealFoods} numberOfLines={1}>
+                  {foodNames}
+                </Text>
                 <View style={styles.mealBottom}>
-                  <Text style={styles.mealKcal}>{item.total_calories} kcal</Text>
-                  <View style={[styles.impactTag, { backgroundColor: impactColor }]}>
-                    <Text style={styles.impactTagText}>{item.calorie_impact}</Text>
+                  <Text style={styles.mealKcal}>
+                    {item.total_calories} kcal
+                  </Text>
+                  <View
+                    style={[styles.impactTag, { backgroundColor: impactColor }]}
+                  >
+                    <Text style={styles.impactTagText}>
+                      {item.calorie_impact}
+                    </Text>
                   </View>
                 </View>
               </View>
- 
+
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
           );
@@ -103,108 +130,115 @@ export default function HistoryScreen({ navigation }) {
   );
 }
 
-
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    title: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: COLORS.textDark,
-        textAlign: 'center',
-        paddingVertical: 16,
-    },
-    emptyState: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,    
-    },
-    emptyText: {
-        fontSize: 16,
-        color: COLORS.textMedium,
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32
-    },
-    backBtn: {
-        backgroundColor: COLORS.primary,
-        borderRadius: 30,
-        paddingVertical: 14,
-        paddingHorizontal: 40,
-    },
-    backBtnText: {
-        color: '#fff',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-    mealCard: {
-        backgroundColor: COLORS.card,
-        borderRadius: 14,
-        marginBottom: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-        elevation: 1,
-    },
-    thumbContainer: {
-        width: 60,
-        height: 60,
-        borderRadius: 10,
-        backgroundColor: COLORS.border,
-        overflow: 'hidden',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12,
-    },
-    thumb: {
-        width: 60,
-        height: 60,
-    },
-    thumbPlaceholder: {
-        fontSize: 28,
-    },
-    mealInfo: {
-        flex: 1,
-    },
-    mealDateTime: {
-        fontSize: 12,
-        color: COLORS.textLight,
-        marginBottom: 2,
-    },
-    mealFoods: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.textDark,
-        marginBottom: 4,
-    },
-    mealBottom: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    mealKcal: {
-        fontSize: 12,
-        color: COLORS.textMedium,
-    },
-    impactTag: {
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        paddingVertical: 2
-    },
-    impactTagText: {
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: 'bold',
-    },
-    chevron: {
-        fontSize: 22,
-        color: COLORS.textLight,
-        marginLeft: 8
-    }
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 15,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: COLORS.textDark,
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: COLORS.textMedium,
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+  backBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 30,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+  },
+  backBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  mealCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 14,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  thumbContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    backgroundColor: COLORS.border,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  thumb: {
+    width: 60,
+    height: 60,
+  },
+  thumbPlaceholder: {
+    fontSize: 28,
+  },
+  mealInfo: {
+    flex: 1,
+  },
+  mealDateTime: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    marginBottom: 2,
+  },
+  mealFoods: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.textDark,
+    marginBottom: 4,
+  },
+  mealBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  mealKcal: {
+    fontSize: 12,
+    color: COLORS.textMedium,
+  },
+  impactTag: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  impactTagText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "bold",
+  },
+  chevron: {
+    fontSize: 22,
+    color: COLORS.textLight,
+    marginLeft: 8,
+  },
 });

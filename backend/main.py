@@ -7,17 +7,17 @@ from app.core.logging import logger
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # load YOLO model once
-    logger.info("Starting NutriTrack API...")
+    logger.info("Starting NutriSight API...")
     model_loader.load()
     logger.info("Startup complete. Ready to accept requests.")
     yield
 
     # shutdown
-    logger.info("Shutting down NutriTrack API.")
+    logger.info("Shutting down NutriSight API.")
 
 # create FastAPI app instance
 app = FastAPI(
-    title="NutriTrack API",
+    title="NutriSight API",
     version="1.0",
     lifespan=lifespan
 )
@@ -27,4 +27,4 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():
-    return {"message": "NutriTrack API is running!"}
+    return {"message": "NutriSight API is running!"}
