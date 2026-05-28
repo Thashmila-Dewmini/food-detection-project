@@ -4,7 +4,7 @@ from pathlib import Path
 class Settings(BaseSettings):
 
     # App
-    APP_NAME: str = "NutriTrack API"
+    APP_NAME: str = "NutriSight API"
     APP_VERSION: str = "1.0"
 
     # Model
