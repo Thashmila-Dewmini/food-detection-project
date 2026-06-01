@@ -1,20 +1,28 @@
+// frontend/src/screens/HomeScreen.js
 import React from "react";
 import {
-    View, Text, TouchableOpacity, StyleSheet,
-    SafeAreaView, StatusBar
+    View, 
+    Text, 
+    TouchableOpacity, 
+    StyleSheet,
+    SafeAreaView, 
+    StatusBar
 } from 'react-native'
 import { COLORS } from "../constants/theme";
+
 
 export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+
       <View style={styles.content}>
         <Text style={styles.appName}>NutriSight</Text>
         <Text style={styles.greeting}>Hi!👋</Text>
         <Text style={styles.description}>
           Scan your meals and instantly discover nutrition insights.
         </Text>
+
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={styles.outlineButton}
@@ -22,6 +30,7 @@ export default function HomeScreen({ navigation }) {
           >
             <Text style={styles.outlineButtonText}>Scan your meal</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.filledButton}
             onPress={() => navigation.navigate('History')}
@@ -30,6 +39,7 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+      
       <Text style={styles.footer}>Smart food analysis powered by AI</Text>
     </SafeAreaView>
   );

@@ -1,35 +1,67 @@
+# backend/app/core/config.py
 from pydantic_settings import BaseSettings
-from pathlib import Path
+
 
 class Settings(BaseSettings):
+    """
+    Central configuration for NutriSight backend.
 
-    # App
+    All environment-specific and system-wide constants
+    are defined here to ensure easy tuning and scalability.
+    """
+
+    # --------------------------------------------------------
+    # Application metadata
+    # --------------------------------------------------------
     APP_NAME: str = "NutriSight API"
     APP_VERSION: str = "1.0"
 
-    # Model
-    MODEL_PATH: str = "runs/detect/outputs/food_detection_v1-3/weights/best.pt"
+    # --------------------------------------------------------
+    # Model configuration
+    # --------------------------------------------------------
+    MODEL_PATH: str = (
+        "runs/detect/outputs/"
+        "food_detection_v1-3/weights/best.pt"
+    )
 
-    # Confidence threshold (from spec + training results)
-    CONFIDENCE_HIGH: float = 0.60 # accept and display normally
-    CONFIDENCE_MEDIUM: float = 0.30 # display with warning badge
-    # below 0.30 -> discarded -> trigger no_food_detected
+    # --------------------------------------------------------
+    # YOLO detection thresholds
+    # --------------------------------------------------------
+    CONFIDENCE_HIGH: float = 0.60   # confident prediction
+    CONFIDENCE_MEDIUM: float = 0.30 # borderline prediction
 
-    # Image validation
-    MIN_FILE_SIZE_BYTES: int = 10_240 # 10 KB
-    MAX_FILE_SIZE_BYTES: int = 10_485_760 # 10 MB
-    ALLOWED_CONTENT_TYPES: list = ["image/jpeg", "image/png"]
+    # --------------------------------------------------------
+    # Image validation rules
+    # --------------------------------------------------------
+    MIN_FILE_SIZE_BYTES: int = 10_240       # 10 KB
+    MAX_FILE_SIZE_BYTES: int = 10_485_760    # 10 MB
 
-    # calorie impact thresholds 
-    CALORIE_LOW_MAX: int = 400  # <400 kcal: Low
-    CALORIE_MEDIUM_MAX: int = 600  # 400-600 kcal: Medium
-    # >600 kcal: High
+    ALLOWED_CONTENT_TYPES: list[str] = [
+        "image/jpeg",
+        "image/png",
+    ]
 
-    # Nutrition data
-    NUTRITION_DB_PATH: str = "app/data/nutrition_db.json"
+    # --------------------------------------------------------
+    # Calorie classification thresholds
+    # --------------------------------------------------------
+    CALORIE_LOW_MAX: int = 400
+    CALORIE_MEDIUM_MAX: int = 600
+
+    # --------------------------------------------------------
+    # Nutrition database
+    # --------------------------------------------------------
+    NUTRITION_DB_PATH: str = (
+        "app/data/nutrition_db.json"
+    )
+
+    # --------------------------------------------------------
+    # Optional future expansion (clean architecture ready)
+    # --------------------------------------------------------
+    DEBUG: bool = False
+    LOG_LEVEL: str = "INFO"
 
     class Config:
         env_file = ".env"
-        
+
 
 settings = Settings()

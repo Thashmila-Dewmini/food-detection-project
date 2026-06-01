@@ -1,3 +1,4 @@
+// frontend/src/screens/ImageSourceScreen.js
 import React from "react";
 import {
   View,
@@ -11,9 +12,14 @@ import * as ImagePicker from "expo-image-picker";
 import { COLORS } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 
+
+
 export default function ImageSourceScreen({ navigation }) {
+
+  // Open device camera after requesting permission
   const openCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
     if (status !== "granted") {
       Alert.alert(
         "Permission Required",
@@ -21,17 +27,21 @@ export default function ImageSourceScreen({ navigation }) {
       );
       return;
     }
+
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
+
     if (!result.canceled && result.assets.length > 0) {
       navigation.navigate("ImagePreview", { image: result.assets[0] });
     }
   };
 
+  // Open device gallery after requesting permission
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
     if (status !== "granted") {
       Alert.alert(
         "Permission Required",
@@ -39,10 +49,12 @@ export default function ImageSourceScreen({ navigation }) {
       );
       return;
     }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
+
     if (!result.canceled && result.assets.length > 0) {
       navigation.navigate("ImagePreview", { image: result.assets[0] });
     }
@@ -50,6 +62,7 @@ export default function ImageSourceScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+
       {/* Header Row */}
       <View style={styles.headerRow}>
         <TouchableOpacity
@@ -61,12 +74,14 @@ export default function ImageSourceScreen({ navigation }) {
 
         <Text style={styles.title}>Select Image Source</Text>
       </View>
+
       <Text style={styles.subtitle}>
         Choose how you want to add your food photo
       </Text>
       
-
+      {/* Source option cards */}
       <View style={styles.optionsContainer}>
+
         {/* Camera card */}
         <View style={styles.card}>
           <Text style={styles.cardIcon}>📸</Text>
@@ -78,6 +93,7 @@ export default function ImageSourceScreen({ navigation }) {
             <Text style={styles.cardButtonText}>Open Camera</Text>
           </TouchableOpacity>
         </View>
+
         {/* Gallery card */}
         <View style={styles.card}>
           <Text style={styles.cardIcon}>🖼️</Text>
@@ -89,6 +105,7 @@ export default function ImageSourceScreen({ navigation }) {
             <Text style={styles.cardButtonText}>Open Gallery</Text>
           </TouchableOpacity>
         </View>
+        
       </View>
     </SafeAreaView>
   );

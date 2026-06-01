@@ -1,15 +1,27 @@
+# backend/app/api/v1/routes/health.py
 from fastapi import APIRouter
 
-"""mobile app startup check
-   backend monitoring
-   debugging
-"""
+from app.schemas.response import HealthResponse
+from app.core.logging import logger
+
 
 router = APIRouter()
 
-@router.get("")
+
+@router.get("", response_model=HealthResponse)
 def health_check():
-    return {
-        "status": "ok",
-        "message": "NutriTrack backend is running!"
-    }
+    """
+    Health check endpoint.
+
+    Used by:
+    - Mobile app startup verification
+    - Backend uptime monitoring
+    - Debugging connectivity issues
+    """
+
+    logger.info("Health check requested")
+
+    return HealthResponse(
+        status="ok",
+        message="NutriSight API is running successfully.",
+    )

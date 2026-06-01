@@ -1,3 +1,4 @@
+// frontend/src/screens/ErrorScreen.js
 import React from "react";
 import {
   View,
@@ -10,23 +11,35 @@ import {
 import { COLORS } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 
+
+
+// Shared header used across all error states
+function ErrorHeader({ navigation, onBack, title }) {
+  return (
+    <View style={styles.headerRow}>
+      <TouchableOpacity
+        onPress={onBack}
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
+      </TouchableOpacity>
+      <Text style={styles.title}>{title}</Text>
+    </View>
+  );
+}
+
+
 export default function ErrorScreen({ navigation, route }) {
   const { type, imageUri } = route.params || {};
 
-  // ── Blur / validation error ──────────────────────────────────────────────
+  // Image validation / blur error
   if (type === "image_invalid") {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Home")}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
-          </TouchableOpacity>
-
-          <Text style={styles.title}>We couldn't use these images</Text>
-        </View>
+        <ErrorHeader
+          onBack={() => navigation.navigate("Home")}
+          title="We couldn't use this image"
+        />
 
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.subtitle}>
@@ -34,7 +47,7 @@ export default function ErrorScreen({ navigation, route }) {
           </Text>
 
           <View style={styles.errorBadge}>
-            <Text style={styles.errorBadgeText}>⚠️ Image is too blur</Text>
+            <Text style={styles.errorBadgeText}>⚠️ Image is too blurry</Text>
             <Text style={styles.errorBadgeSub}>
               Please capture a clear image
             </Text>
@@ -66,20 +79,14 @@ export default function ErrorScreen({ navigation, route }) {
     );
   }
 
-  // ── Server / network error ───────────────────────────────────────────────
+  // Server or network error
   if (type === "server_error" || type === "network_error") {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
-          </TouchableOpacity>
-
-          <Text style={styles.title}>We couldn't analyze your images</Text>
-        </View>
+        <ErrorHeader
+          onBack={() => navigation.goBack()}
+          title="We couldn't analyze your image"
+        />
 
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.subtitle}>
@@ -97,9 +104,11 @@ export default function ErrorScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.outlineButton}
             onPress={() => {
-              if (imageUri)
+              if (imageUri) {
                 navigation.replace("Loading", { image: { uri: imageUri } });
-              else navigation.navigate("ImageSource");
+              } else {
+                navigation.navigate("ImageSource");
+              }
             }}
           >
             <Text style={styles.outlineButtonText}>Try Again</Text>
@@ -116,27 +125,19 @@ export default function ErrorScreen({ navigation, route }) {
     );
   }
 
-  // ── No food detected ─────────────────────────────────────────────────────
+  // No food detected in image
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
-        </TouchableOpacity>
-
-        <Text style={styles.title}>
-          We couldn't find any food in this image
-        </Text>
-      </View>
+      <ErrorHeader
+        onBack={() => navigation.navigate("Home")}
+        title="We couldn't find any food in this image"
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.tipsCard}>
           <Text style={styles.tip}>
-            This may be due to poor lighting, an unclear angle, or the image not
-            containing food. Please try again with a better photo.
+            This may be due to poor lighting, an unclear angle, or the image
+            not containing food. Please try again with a better photo.
           </Text>
         </View>
 

@@ -1,3 +1,4 @@
+// frontend/src/screens/ImagePreviewScreen.js
 import React from "react";
 import {
   View,
@@ -11,13 +12,16 @@ import {
 import { COLORS } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 
+
 const { width } = Dimensions.get("window");
+
 
 export default function ImagePreviewScreen({ navigation, route }) {
   const { image } = route.params;
 
   return (
     <SafeAreaView style={styles.container}>
+
       {/* Header Row */}
       <View style={styles.headerRow}>
         <TouchableOpacity
@@ -26,16 +30,17 @@ export default function ImagePreviewScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
         </TouchableOpacity>
-
         <Text style={styles.title}>Your image</Text>
       </View>
 
+      {/* Full-width image preview */}
       <Image
         source={{ uri: image.uri }}
         style={styles.image}
         resizeMode="cover"
       />
 
+      {/* Action buttons */}
       <View style={styles.buttonGroup}>
         <TouchableOpacity
           style={styles.outlineButton}
@@ -51,6 +56,7 @@ export default function ImagePreviewScreen({ navigation, route }) {
           <Text style={styles.filledButtonText}>Confirm</Text>
         </TouchableOpacity>
       </View>
+      
     </SafeAreaView>
   );
 }

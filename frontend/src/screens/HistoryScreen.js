@@ -1,3 +1,4 @@
+// frontend/src/screens/HistoryScreen.js
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -14,36 +15,53 @@ import { COLORS } from "../constants/theme";
 import { CALORIE_IMPACT_COLORS } from "../constants/config";
 import { Ionicons } from "@expo/vector-icons";
 
+
+// Shared screen header
+function ScreenHeader({ navigation }) {
+  return (
+    <View style={styles.headerRow}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
+      </TouchableOpacity>
+      <Text style={styles.title}>History List</Text>
+      <View style={{ width: 24 }} />
+    </View>
+  );
+}
+
+
+// Format a stored ISO date string → "YYYY-MM-DD HH:MM"
+function formatDateTime(isoString) {
+  const d = new Date(isoString);
+  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return { date, time };
+}
+
+
 export default function HistoryScreen({ navigation }) {
   const [meals, setMeals] = useState([]);
 
+  // Reload meal list every time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
       getMeals().then(setMeals);
     }, []),
   );
- 
+
+
   // Empty state
   if (meals.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
-          </TouchableOpacity>
-
-          <Text style={styles.title}>History List</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
+        <ScreenHeader navigation={navigation} />
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>
-            No meals scanned yet. Tap Scan your meal to get started
+            No meals scanned yet. Tap Scan your meal to get started.
           </Text>
-
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => navigation.navigate("Home")}
@@ -55,54 +73,45 @@ export default function HistoryScreen({ navigation }) {
     );
   }
 
-  // List state
+  // Meal list
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={25} color={COLORS.textDark} />
-          </TouchableOpacity>
+      <ScreenHeader navigation={navigation} />
 
-          <Text style={styles.title}>History List</Text>
-          <View style={{ width: 24 }} />
-        </View>
       <FlatList
         data={meals}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const impactColor =
             CALORIE_IMPACT_COLORS[item.calorie_impact] || COLORS.textMedium;
-          const dateObj = new Date(item.date);
-          const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
-          const timeStr = dateObj.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+          const { date, time } = formatDateTime(item.date);
           const foodNames =
             item.detected_items?.map((i) => i.item_name).join(", ") || "";
 
           return (
             <TouchableOpacity
               style={styles.mealCard}
-              onPress={() => navigation.navigate("MealDetail", { meal: item })}
+              onPress={() =>
+                navigation.navigate("MealDetail", { meal: item })
+              }
             >
               {/* Thumbnail */}
               <View style={styles.thumbContainer}>
                 {item.imageUri ? (
-                  <Image source={{ uri: item.imageUri }} style={styles.thumb} />
+                  <Image
+                    source={{ uri: item.imageUri }}
+                    style={styles.thumb}
+                  />
                 ) : (
                   <Text style={styles.thumbPlaceholder}>🖼️</Text>
                 )}
               </View>
 
-              {/* Info */}
+              {/* Meal info */}
               <View style={styles.mealInfo}>
                 <Text style={styles.mealDateTime}>
-                  {dateStr} {timeStr}
+                  {date} {time}
                 </Text>
                 <Text style={styles.mealFoods} numberOfLines={1}>
                   {foodNames}
@@ -112,7 +121,10 @@ export default function HistoryScreen({ navigation }) {
                     {item.total_calories} kcal
                   </Text>
                   <View
-                    style={[styles.impactTag, { backgroundColor: impactColor }]}
+                    style={[
+                      styles.impactTag,
+                      { backgroundColor: impactColor },
+                    ]}
                   >
                     <Text style={styles.impactTagText}>
                       {item.calorie_impact}
@@ -149,6 +161,10 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
     textAlign: "center",
     paddingVertical: 16,
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
   emptyState: {
     flex: 1,

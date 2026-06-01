@@ -1,85 +1,168 @@
+# backend/app/services/nutrition_service.py
 import json
 from pathlib import Path
+from typing import Any
+
 from app.core.config import settings
 from app.core.logging import logger
 
-# load nutrition DB once at import time
-_db_path = Path(settings.NUTRITION_DB_PATH)
 
-with open(_db_path,  'r') as f:
-    NUTRITION_DB = json.load(f)
+# Portion estimation constants
+MIN_PORTION_SCALE = 0.3
+MAX_PORTION_SCALE = 1.5
+AREA_SCALE_MULTIPLIER = 5.0
 
-# handles any hidden character, case, or whitespace differences
-_NORMALISED_DB = {k.strip().lower(): k for k in NUTRITION_DB if not k.startswith("_")}
 
-def _lookup_entry(class_name: str) -> dict | None:
+def _load_nutrition_db() -> dict[str, Any]:
     """
-    Robust nutrition DB lookup.
-    1. Try exact match first (fastest)
-    2. Try stripped + lowercased match (catches hidden chars / case differences)
-    3. Try partial match (catches minor spelling differences)
-    Returns the DB entry dict or None if nothing found.
+    Load the nutrition database from disk.
+
+    Returns:
+        Dictionary containing food nutrition data.
+
+    Raises:
+        RuntimeError: If the nutrition database cannot be loaded.
     """
-    # 1. Exact match
+    db_path = Path(settings.NUTRITION_DB_PATH)
+
+    try:
+        with open(db_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+
+    except FileNotFoundError:
+        logger.error(f"Nutrition database not found: {db_path}")
+        raise RuntimeError("Nutrition database file is missing.")
+
+    except json.JSONDecodeError as exc:
+        logger.error(f"Invalid nutrition database JSON: {exc}")
+        raise RuntimeError("Nutrition database contains invalid JSON.")
+
+
+# Load database once during application startup
+NUTRITION_DB = _load_nutrition_db()
+
+# Create a normalized lookup table to handle
+# case differences and accidental whitespace.
+_NORMALIZED_DB = {
+    key.strip().lower(): key
+    for key in NUTRITION_DB
+    if not key.startswith("_")
+}
+
+
+def _lookup_entry(class_name: str) -> dict[str, Any] | None:
+    """
+    Retrieve a nutrition entry using multiple matching strategies.
+
+    Matching order:
+    1. Exact match
+    2. Case-insensitive normalized match
+    3. Partial match
+
+    Args:
+        class_name: Detected food name.
+
+    Returns:
+        Nutrition entry dictionary or None if no match is found.
+    """
+
+    # Exact match
     entry = NUTRITION_DB.get(class_name)
     if entry:
         return entry
- 
-    # 2. Normalised match (strips whitespace, lowercases)
-    normalised = class_name.strip().lower()
-    original_key = _NORMALISED_DB.get(normalised)
+
+    # Normalized match
+    normalized_name = class_name.strip().lower()
+    original_key = _NORMALIZED_DB.get(normalized_name)
+
     if original_key:
-        logger.debug(f"Normalised lookup matched '{class_name}' -> '{original_key}'")
+        logger.debug(
+            f"Normalized lookup matched '{class_name}' -> '{original_key}'"
+        )
         return NUTRITION_DB[original_key]
- 
-    # 3. Partial match — find any key that contains the query or vice versa
-    for norm_key, orig_key in _NORMALISED_DB.items():
-        if normalised in norm_key or norm_key in normalised:
-            logger.debug(f"Partial lookup matched '{class_name}' -> '{orig_key}'")
-            return NUTRITION_DB[orig_key]
- 
+
+    # Partial match
+    for normalized_key, original_key in _NORMALIZED_DB.items():
+        if (
+            normalized_name in normalized_key
+            or normalized_key in normalized_name
+        ):
+            logger.debug(
+                f"Partial lookup matched '{class_name}' -> '{original_key}'"
+            )
+            return NUTRITION_DB[original_key]
+
     return None
- 
- 
-def _default_entry() -> dict:
+
+
+def _default_entry() -> dict[str, float]:
+    """
+    Fallback nutrition values used when a food item
+    cannot be found in the nutrition database.
+    """
     return {
         "calories_per_100g": 100,
         "protein_per_100g": 3.0,
         "carbs_per_100g": 15.0,
         "fat_per_100g": 3.0,
-        "default_serving_g": 100
+        "default_serving_g": 100,
     }
 
-def get_nutrition_for_item(class_name: str, bbox: dict, image_width: int, image_height: int) -> dict:
+
+def get_nutrition_for_item(
+    class_name: str,
+    bbox: dict,
+    image_width: int,
+    image_height: int,
+) -> dict[str, float]:
     """
-    Looks up nutrition values for a detected food item.
-    Estimates portion weight using bounding box area relative to image size
-    combined with the default serving weight for that food category.
+    Estimate nutrition values for a detected food item.
+
+    Portion size is estimated using the relative size of the
+    detected bounding box compared to the entire image.
+
+    Args:
+        class_name: Detected food category.
+        bbox: Bounding box dictionary.
+        image_width: Width of the image in pixels.
+        image_height: Height of the image in pixels.
+
+    Returns:
+        Estimated nutrition information.
     """
+
     entry = _lookup_entry(class_name)
 
     if entry is None:
-        logger.warning(f"No nutrition data found for: {class_name}. Using defaults.")
+        logger.warning(
+            f"No nutrition data found for '{class_name}'. Using defaults."
+        )
         entry = _default_entry()
-    
-    # Estimate portion weight
-    # method: scale default serving by the fraction of the image bounding box covers
-    # This is a heuristic - gives a more realistic estimate than always using the default
-    bbox_area = bbox['width'] * bbox['height']
+
+    bbox_area = bbox["width"] * bbox["height"]
     image_area = image_width * image_height
 
     if image_area > 0:
         area_ratio = bbox_area / image_area
-        # If the item covers 100% of the image -> use 1.5x default serving
-        # If it covers 10% use ~0.5x default serving
-        # Clamp between 0.3x and 1.5x of default
-        scale = max(0.3, min(1.5, area_ratio * 5))
-    else:
-        scale = 1.0  # fallback to default if image area is zero for some reason
-    
-    estimated_weight_g = round(entry['default_serving_g'] * scale, 1)
 
-    # scale nutrition to estimated weight
+        scale = max(
+            MIN_PORTION_SCALE,
+            min(
+                MAX_PORTION_SCALE,
+                area_ratio * AREA_SCALE_MULTIPLIER,
+            ),
+        )
+    else:
+        logger.warning(
+            "Image area is zero. Falling back to default serving size."
+        )
+        scale = 1.0
+
+    estimated_weight_g = round(
+        entry["default_serving_g"] * scale,
+        1,
+    )
+
     factor = estimated_weight_g / 100.0
 
     return {
@@ -87,52 +170,91 @@ def get_nutrition_for_item(class_name: str, bbox: dict, image_width: int, image_
         "calories": round(entry["calories_per_100g"] * factor, 1),
         "protein_g": round(entry["protein_per_100g"] * factor, 1),
         "carbs_g": round(entry["carbs_per_100g"] * factor, 1),
-        "fat_g": round(entry["fat_per_100g"] * factor, 1)
+        "fat_g": round(entry["fat_per_100g"] * factor, 1),
     }
 
-def get_nutrition_for_item_by_weight(class_name: str, weight_g: float) -> dict:
+
+def get_nutrition_for_item_by_weight(
+    class_name: str,
+    weight_g: float,
+) -> dict[str, float]:
     """
-    Looks up nutrition for an item at a specific weight in grams.
-    Used by the /api/v1/recalculate endpoint when the user edits portions.
+    Calculate nutrition values using a user-specified weight.
+
+    Used when the user manually edits portion sizes and requests
+    recalculation.
+
+    Args:
+        class_name: Food name.
+        weight_g: User-adjusted weight in grams.
+
+    Returns:
+        Calculated nutrition information.
     """
+
     entry = _lookup_entry(class_name)
- 
+
     if entry is None:
-        logger.warning(f"No nutrition data found for: '{class_name}'. Using defaults.")
+        logger.warning(
+            f"No nutrition data found for '{class_name}'. Using defaults."
+        )
         entry = _default_entry()
- 
+
     factor = weight_g / 100.0
- 
+
     return {
         "estimated_weight_g": round(weight_g, 1),
-        "calories":  round(entry["calories_per_100g"] * factor, 1),
-        "protein_g": round(entry["protein_per_100g"]  * factor, 1),
-        "carbs_g":   round(entry["carbs_per_100g"]    * factor, 1),
-        "fat_g":     round(entry["fat_per_100g"]      * factor, 1),
+        "calories": round(entry["calories_per_100g"] * factor, 1),
+        "protein_g": round(entry["protein_per_100g"] * factor, 1),
+        "carbs_g": round(entry["carbs_per_100g"] * factor, 1),
+        "fat_g": round(entry["fat_per_100g"] * factor, 1),
     }
 
 
-def calculate_totals(items: list) -> dict:
+def calculate_totals(items: list[dict]) -> dict[str, Any]:
     """
-    Sums up nutrition across all detected items and assigns calories impact category.
-    """
-    total_calories = round(sum(item["calories"] for item in items), 1)
-    total_protein = round(sum(item["protein_g"] for item in items), 1)
-    total_carbs = round(sum(item["carbs_g"] for item in items), 1)
-    total_fat = round(sum(item["fat_g"] for item in items), 1)
+    Calculate total nutrition values for all detected items.
 
-    # calories impact classification
+    Args:
+        items: List of nutrition dictionaries.
+
+    Returns:
+        Aggregated nutrition totals and calorie impact category.
+    """
+
+    total_calories = round(
+        sum(item["calories"] for item in items),
+        1,
+    )
+
+    total_protein = round(
+        sum(item["protein_g"] for item in items),
+        1,
+    )
+
+    total_carbs = round(
+        sum(item["carbs_g"] for item in items),
+        1,
+    )
+
+    total_fat = round(
+        sum(item["fat_g"] for item in items),
+        1,
+    )
+
     if total_calories < settings.CALORIE_LOW_MAX:
         calorie_impact = "Low"
+
     elif total_calories <= settings.CALORIE_MEDIUM_MAX:
         calorie_impact = "Medium"
+
     else:
         calorie_impact = "High"
-    
+
     return {
         "total_calories": total_calories,
         "total_protein_g": total_protein,
         "total_carbs_g": total_carbs,
         "total_fat_g": total_fat,
-        "calorie_impact": calorie_impact
+        "calorie_impact": calorie_impact,
     }

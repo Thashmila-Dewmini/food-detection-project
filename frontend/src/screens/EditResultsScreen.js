@@ -1,3 +1,4 @@
+// frontend/src/screens/EditResultsScreen.js
 import React, { useState } from "react";
 import {
   View,
@@ -75,22 +76,19 @@ export default function EditResultsScreen({ navigation, route }) {
   const [searchResults, setSearchResults] = useState([]);
 
   const removeItem = async (index) => {
+    const updated = items.filter((_, i) => i !== index);
 
-  const updated =
-    items.filter((_, i) => i !== index);
-
-  // update UI immediately (optimistic) then request server recalculation
-  setItems(updated);
-  try {
-    await handleRecalculate(updated);
-  } catch (_) {
-    // if server recalc fails, keep optimistic UI but log handled earlier
-  }
-};
+    // update UI immediately (optimistic) then request server recalculation
+    setItems(updated);
+    try {
+      await handleRecalculate(updated);
+    } catch (_) {
+      // if server recalc fails, keep optimistic UI but log handled earlier
+    }
+  };
 
   const handleRecalculate = async (updatedItems) => {
     try {
-
       const payload = updatedItems.map((item) => ({
         item_name: item.item_name,
         estimated_weight_g: item.estimated_weight_g,
@@ -108,9 +106,7 @@ export default function EditResultsScreen({ navigation, route }) {
         calorie_impact: response.calorie_impact,
       });
     } catch (error) {
-      console.log(
-        "Failed to recalculate: ", error
-      );
+      console.log("Failed to recalculate: ", error);
     }
   };
 
@@ -257,8 +253,6 @@ export default function EditResultsScreen({ navigation, route }) {
               )}
             </View>
           ))}
-
-          
         </View>
 
         {/*search*/}
@@ -545,7 +539,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBlockColor: COLORS.border,
+    borderBottomColor: COLORS.border,
   },
   searchResultText: {
     color: COLORS.textDark,

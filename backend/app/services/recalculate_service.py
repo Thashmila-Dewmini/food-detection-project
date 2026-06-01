@@ -1,79 +1,62 @@
+# backend/app/services/recalculate_service.py
+from typing import List
+
 from app.services.nutrition_service import (
-    NUTRITION_DB,
-    calculate_totals
+    get_nutrition_for_item_by_weight,
+    calculate_totals,
 )
 
 from app.core.logging import logger
 
 
-def recalculate_nutrition(items: list) -> dict:
+def recalculate_nutrition(items: List) -> dict:
     """
-    Recalculates nutrition values using
-    manually edited portion sizes.
+    Recalculate nutritional values after the user manually adjusts
+    portion sizes in the mobile application.
+
+    Each item's nutrition is recalculated using its updated weight,
+    then meal totals are recomputed.
     """
 
     updated_items = []
 
     for item in items:
-
-        normalized_name = item.item_name.strip().title()
-
-        entry = NUTRITION_DB.get(normalized_name)
-
-        if entry is None:
-            logger.warning(
-                f"No nutrition data found for {item.item_name}"
-            )
-
-            continue
-
-        # scale nutrition by edited weight
-        factor = item.estimated_weight_g / 100.0
+        nutrition = get_nutrition_for_item_by_weight(
+            class_name=item.item_name,
+            weight_g=item.estimated_weight_g,
+        )
 
         updated_items.append({
             "item_name": item.item_name,
             "confidence_score": 100.0,
+            "estimated_weight_g": nutrition["estimated_weight_g"],
+            "calories": nutrition["calories"],
+            "protein_g": nutrition["protein_g"],
+            "carbs_g": nutrition["carbs_g"],
+            "fat_g": nutrition["fat_g"],
 
-            "estimated_weight_g": item.estimated_weight_g,
-
-            "calories": round(
-                entry["calories_per_100g"] * factor,
-                1
-            ),
-
-            "protein_g": round(
-                entry["protein_per_100g"] * factor,
-                1
-            ),
-
-            "carbs_g": round(
-                entry["carbs_per_100g"] * factor,
-                1
-            ),
-
-            "fat_g": round(
-                entry["fat_per_100g"] * factor,
-                1
-            ),
-
-            # placeholder bbox
+            # Bounding box information is unavailable during
+            # manual recalculation because the user is only
+            # modifying portion sizes.
             "bounding_box": {
                 "x": 0,
                 "y": 0,
                 "width": 0,
-                "height": 0
+                "height": 0,
             },
 
-            "low_confidence_warning": False
+            "low_confidence_warning": False,
         })
 
     totals = calculate_totals(updated_items)
 
-    logger.info("Nutrition recalculation completed.")
+    logger.info(
+        f"Nutrition recalculation completed for {len(updated_items)} items."
+    )
 
     return {
         "status": "success",
         "message": "Nutrition recalculated successfully.",
         "detected_items": updated_items,
-        **totals
+        **totals,
     }

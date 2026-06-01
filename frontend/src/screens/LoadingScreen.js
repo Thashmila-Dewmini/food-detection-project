@@ -1,35 +1,53 @@
+// frontend/src/screens/LoadingScreen.js
 import React, { useEffect, useRef} from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  SafeAreaView, Animated, Easing,
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet,
+  SafeAreaView, 
+  Animated, 
+  Easing,
 } from 'react-native';
 import { analyzeFood } from "../services/api";
 import { COLORS } from "../constants/theme";
 
+
 export default function LoadingScreen({ navigation, route }) {
   const { image } = route.params;
   const spinValue = useRef(new Animated.Value(0)).current;
- 
+
+  // Start spinner animation on mount
   useEffect(() => {
     Animated.loop(
       Animated.timing(spinValue, {
-        toValue: 1, duration: 1000,
-        easing: Easing.linear, useNativeDriver: true,
+        toValue: 1, 
+        duration: 1000,
+        easing: Easing.linear, 
+        useNativeDriver: true,
       })
     ).start();
   }, []);
- 
+  
+  // Run food analysis and navigate based on result
   useEffect(() => {
     const run = async () => {
       try {
         const result = await analyzeFood(image.uri);
+
         if (result.status === 'success') {
           navigation.replace('Results', { result, imageUri: image.uri });
+
         } else if (result.status === 'no_food_detected') {
-          navigation.replace('Error', { type: 'no_food', imageUri: image.uri });
+          navigation.replace('Error', { 
+            type: 'no_food', 
+            imageUri: image.uri 
+          });
+
         } else {
           navigation.replace('Error', { type: 'server_error' });
         }
+
       } catch (e) {
         navigation.replace('Error', { type: 'network_error' });
       }
@@ -37,24 +55,31 @@ export default function LoadingScreen({ navigation, route }) {
     run();
   }, []);
  
-  const spin = spinValue.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const spin = spinValue.interpolate({ 
+    inputRange: [0, 1], 
+    outputRange: ['0deg', '360deg'] 
+  });
  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+
+        {/* Spinner */}
         <Animated.View style={[styles.spinner, { transform: [{ rotate: spin }] }]}>
           <View style={styles.spinnerInner} />
         </Animated.View>
  
         <Text style={styles.title}>Processing your image....</Text>
         <Text style={styles.subtitle}>This may take a few seconds</Text>
- 
+
+        {/* Cancel returns user to home without waiting */}
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => navigation.navigate('Home')}
         >
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
+        
       </View>
     </SafeAreaView>
   );
