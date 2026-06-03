@@ -14,8 +14,9 @@ export const API_ENDPOINTS = {
 
 // Calorie impact badge colors
 // Matches backend classification: Low / Medium / High
+import { COLORS } from "./theme";
 export const CALORIE_IMPACT_COLORS = {
-  Low: "#4CAF50",
-  Medium: "#FF9800",
-  High: "#F44336",
+  Low:    COLORS.calorieLow,
+  Medium: COLORS.calorieMedium,
+  High:   COLORS.calorieHigh,
 };

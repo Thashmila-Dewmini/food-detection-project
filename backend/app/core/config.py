@@ -10,29 +10,23 @@ class Settings(BaseSettings):
     are defined here to ensure easy tuning and scalability.
     """
 
-    # --------------------------------------------------------
     # Application metadata
-    # --------------------------------------------------------
     APP_NAME: str = "NutriSight API"
     APP_VERSION: str = "1.0"
 
-    # --------------------------------------------------------
     # Model configuration
-    # --------------------------------------------------------
     MODEL_PATH: str = (
         "runs/detect/outputs/"
         "food_detection_v1-3/weights/best.pt"
     )
 
-    # --------------------------------------------------------
+    
     # YOLO detection thresholds
-    # --------------------------------------------------------
     CONFIDENCE_HIGH: float = 0.60   # confident prediction
     CONFIDENCE_MEDIUM: float = 0.30 # borderline prediction
 
-    # --------------------------------------------------------
+
     # Image validation rules
-    # --------------------------------------------------------
     MIN_FILE_SIZE_BYTES: int = 10_240       # 10 KB
     MAX_FILE_SIZE_BYTES: int = 10_485_760    # 10 MB
 
@@ -41,22 +35,17 @@ class Settings(BaseSettings):
         "image/png",
     ]
 
-    # --------------------------------------------------------
-    # Calorie classification thresholds
-    # --------------------------------------------------------
-    CALORIE_LOW_MAX: int = 400
-    CALORIE_MEDIUM_MAX: int = 600
 
-    # --------------------------------------------------------
+    # Calorie classification thresholds
+    CALORIE_LOW_MAX: int = 500
+    CALORIE_MEDIUM_MAX: int = 700
+
     # Nutrition database
-    # --------------------------------------------------------
     NUTRITION_DB_PATH: str = (
         "app/data/nutrition_db.json"
     )
 
-    # --------------------------------------------------------
-    # Optional future expansion (clean architecture ready)
-    # --------------------------------------------------------
+    # Optional future expansion 
     DEBUG: bool = False
     LOG_LEVEL: str = "INFO"
 

@@ -29,7 +29,7 @@ def _run_yolo(bgr_image: np.ndarray):
 
 def _process_results(results):
     """
-    Converts raw YOLO output → structured detections
+    Converts raw YOLO output -> structured detections
     with confidence filtering.
     """
 
@@ -51,9 +51,8 @@ def _process_results(results):
                 f"Detection: {class_name} | confidence={conf:.3f}"
             )
 
-            # --------------------------------------------
+            
             # Confidence filtering
-            # --------------------------------------------
             if conf < settings.CONFIDENCE_MEDIUM:
                 logger.debug(
                     f"Discarded low confidence: {class_name}"
@@ -87,14 +86,12 @@ def run_detection_from_bytes(file_bytes: bytes) -> dict:
     Main inference pipeline.
 
     Steps:
-    1. Decode image bytes → BGR (OpenCV)
+    1. Decode image bytes -> BGR (OpenCV)
     2. Run YOLO model
     3. Filter + format results
     """
 
-    # --------------------------------------------
     # Decode image safely using OpenCV
-    # --------------------------------------------
     nparr = np.frombuffer(file_bytes, np.uint8)
     bgr_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -105,9 +102,7 @@ def run_detection_from_bytes(file_bytes: bytes) -> dict:
             "any_detected": False,
         }
 
-    # --------------------------------------------
     # Run inference
-    # --------------------------------------------
     results = _run_yolo(bgr_image)
 
     accepted = _process_results(results)

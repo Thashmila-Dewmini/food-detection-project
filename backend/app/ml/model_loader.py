@@ -55,7 +55,5 @@ class ModelLoader:
         return self._model
 
 
-# ------------------------------------------------------------
 # Global shared model instance
-# ------------------------------------------------------------
 model_loader = ModelLoader()

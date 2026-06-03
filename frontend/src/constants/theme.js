@@ -5,38 +5,44 @@
 // instead of hardcoding color values directly.
 export const COLORS = {
   // Brand
-    primary: '#025e05',        
-    primaryLight: '#E8F5E9', 
-    
-    // Backgrounds & surfaces
-    background: '#f5f5f5',     
-    card: '#ffffff',     
-    
-    // Typography
-    textDark: '#1a1a1a',       
-    textMedium: '#555555',     
-    textLight: '#999999',  
-    
-    // UI elements
-    border: '#e0e0e0',         
-    error: '#d32f2f',    
-    
-    // Calorie impact indicators
-    calorieLow: '#4CAF50',
-    calorieMedium: '#FF9800',
-    calorieHigh: '#F44336',
+  primary: "#025e05",
+  primaryLight: "#E8F5E9",
 
-    // Warning states
-    warningBg: '#FFF3E0',
-    warningText: '#E65100',
-}
+  // Backgrounds & surfaces
+  background: "#f5f5f5",
+  card: "#ffffff",
+
+  // Typography
+  textDark: "#1a1a1a",
+  textMedium: "#555555",
+  textLight: "#999999",
+
+  // UI elements
+  border: "#e0e0e0",
+  error: "#d32f2f",
+
+  // Calorie impact indicators
+  calorieLow: "#4CAF50",
+  calorieMedium: "#FF9800",
+  calorieHigh: "#F44336",
+
+  // Warning states
+  warningBg: "#FFF3E0",
+  warningText: "#E65100",
+
+  // Macro nutrition box colors
+  macroKcal: "#FF9800",
+  macroProtein: "#4CAF50",
+  macroCarbs: "#2196F3",
+  macroFat: "#E91E63",
+};
 
 // Font size scale
 // Use these named sizes instead of raw numbers in styles.
 export const FONTS = {
+  small:   13,
   regular: 16,
-  small: 13,
-  medium: 18,
-  large: 24,
-  xlarge: 30,
+  medium:  18,
+  large:   24,
+  xlarge:  30,
 };

@@ -14,9 +14,12 @@ import { getMeals } from "../storage/mealStorage";
 import { COLORS } from "../constants/theme";
 import { CALORIE_IMPACT_COLORS } from "../constants/config";
 import { Ionicons } from "@expo/vector-icons";
+import { formatDateTime } from "../utils/dateUtils";
 
 
-// Shared screen header
+// --------------------------------------------------------
+// Shared screen header used in both empty and list states
+// --------------------------------------------------------
 function ScreenHeader({ navigation }) {
   return (
     <View style={styles.headerRow}>
@@ -33,27 +36,21 @@ function ScreenHeader({ navigation }) {
 }
 
 
-// Format a stored ISO date string → "YYYY-MM-DD HH:MM"
-function formatDateTime(isoString) {
-  const d = new Date(isoString);
-  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return { date, time };
-}
-
-
 export default function HistoryScreen({ navigation }) {
   const [meals, setMeals] = useState([]);
 
+  // --------------------------------------------------------
   // Reload meal list every time the screen comes into focus
+  // --------------------------------------------------------
   useFocusEffect(
     useCallback(() => {
       getMeals().then(setMeals);
     }, []),
   );
 
-
-  // Empty state
+  // --------------------------------------------------------
+  // Empty state — shown when no meals have been saved yet
+  // --------------------------------------------------------
   if (meals.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
@@ -73,7 +70,9 @@ export default function HistoryScreen({ navigation }) {
     );
   }
 
-  // Meal list
+  // --------------------------------------------------------
+  // Meal list — rendered as a FlatList for performance
+  // --------------------------------------------------------
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader navigation={navigation} />
@@ -96,7 +95,7 @@ export default function HistoryScreen({ navigation }) {
                 navigation.navigate("MealDetail", { meal: item })
               }
             >
-              {/* Thumbnail */}
+              {/* Meal thumbnail */}
               <View style={styles.thumbContainer}>
                 {item.imageUri ? (
                   <Image
@@ -108,7 +107,7 @@ export default function HistoryScreen({ navigation }) {
                 )}
               </View>
 
-              {/* Meal info */}
+              {/* Meal info — date, food names, calories, impact */}
               <View style={styles.mealInfo}>
                 <Text style={styles.mealDateTime}>
                   {date} {time}
@@ -155,12 +154,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 15,
   },
+  backButton: {
+    padding: 4,
+  },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     color: COLORS.textDark,
     textAlign: "center",
-    paddingVertical: 16,
   },
   listContent: {
     paddingHorizontal: 16,

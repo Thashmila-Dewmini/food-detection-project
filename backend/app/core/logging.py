@@ -17,27 +17,22 @@ def setup_logger(name: str = "nutriSight") -> logging.Logger:
 
     logger = logging.getLogger(name)
 
-    # --------------------------------------------------------
     # Prevent duplicate handlers (important in FastAPI reload)
-    # --------------------------------------------------------
     if logger.handlers:
         return logger
 
-    # --------------------------------------------------------
+
     # Set log level from config
-    # --------------------------------------------------------
     level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
     logger.setLevel(level)
 
-    # --------------------------------------------------------
+
     # Console handler
-    # --------------------------------------------------------
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
 
-    # --------------------------------------------------------
+
     # Log format
-    # --------------------------------------------------------
     formatter = logging.Formatter(
         "[%(asctime)s] %(levelname)s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -49,7 +44,5 @@ def setup_logger(name: str = "nutriSight") -> logging.Logger:
     return logger
 
 
-# ------------------------------------------------------------
 # Shared application logger instance
-# ------------------------------------------------------------
 logger = setup_logger()
