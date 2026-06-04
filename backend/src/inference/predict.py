@@ -1,3 +1,4 @@
+# backend/src/inference/predict.py
 from ultralytics import YOLO
 
 model = YOLO("runs/detect/outputs/food_detection_v1-3/weights/best.pt")

@@ -1,3 +1,4 @@
+# backend/src/training/train.py
 from ultralytics import YOLO
 
 def main():

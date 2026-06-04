@@ -1,3 +1,4 @@
+# backend/src/inference/detector.py
 from ultralytics import YOLO
 
 class FoodDetector:

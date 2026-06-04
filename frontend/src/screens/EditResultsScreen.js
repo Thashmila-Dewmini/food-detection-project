@@ -17,10 +17,8 @@ import { Ionicons } from "@expo/vector-icons";
 import MacroBox from "../components/MacroBox";
 
 
-// --------------------------------------------------------
 // All 34 supported food classes for the search & add panel.
 // Must stay in sync with the backend YOLO model classes.
-// --------------------------------------------------------
 const FOOD_CLASSES = [
   "Basmathi Rice",
   "Bean Curry",
@@ -79,14 +77,17 @@ export default function EditResultsScreen({ navigation, route }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
+  // Validation rejection state
+  // Shown as an inline warning banner above the save button
+  // when the backend Laye-1 check returns "rejected".
+  const [rejectionReasons, setRejectionReasons] = useState([]);
 
-  // --------------------------------------------------------
+
   // Remove an item and immediately recalculate totals.
-  // UI updates optimistically — server confirms in background.
-  // --------------------------------------------------------
   const removeItem = async (index) => {
     const updated = items.filter((_, i) => i !== index);
     setItems(updated);
+    setRejectionReasons([]);  // clear any previous rejection banner
 
     try {
       await handleRecalculate(updated);
@@ -96,10 +97,9 @@ export default function EditResultsScreen({ navigation, route }) {
   };
 
 
-  // --------------------------------------------------------
+
   // Send updated item list to backend and refresh summary.
   // Called after any add, remove, or portion change.
-  // --------------------------------------------------------
   const handleRecalculate = async (updatedItems) => {
     try {
       const payload = updatedItems.map((item) => ({
@@ -125,21 +125,20 @@ export default function EditResultsScreen({ navigation, route }) {
   };
 
 
-  // --------------------------------------------------------
+ 
   // Update a single item's portion weight and recalculate.
-  // --------------------------------------------------------
   const updatePortion = async (index, newWeight) => {
     const updated = [...items];
     updated[index].estimated_weight_g = newWeight;
+    setRejectionReasons([]);
 
     await handleRecalculate(updated);
     setEditingIndex(null);
   };
 
 
-  // --------------------------------------------------------
+  
   // Filter FOOD_CLASSES by search text (max 6 results).
-  // --------------------------------------------------------
   const handleSearch = (text) => {
     setSearchQuery(text);
 
@@ -155,10 +154,9 @@ export default function EditResultsScreen({ navigation, route }) {
   };
 
 
-  // --------------------------------------------------------
+
   // Add a new food item at default 100g and recalculate.
   // UI updates optimistically before server responds.
-  // --------------------------------------------------------
   const addItem = async (foodName) => {
     const updated = [
       ...items,
@@ -169,6 +167,7 @@ export default function EditResultsScreen({ navigation, route }) {
     ];
 
     setItems(updated);
+    setRejectionReasons([]);
 
     try {
       await handleRecalculate(updated);
@@ -181,21 +180,52 @@ export default function EditResultsScreen({ navigation, route }) {
   };
 
 
-  // --------------------------------------------------------
-  // Submit feedback, save meal, and navigate to Home.
-  // Feedback failure is non-blocking — meal is saved regardless.
-  // --------------------------------------------------------
+  
+  // Submit feedback with Layer-1 validation handling.
+  // "success" -> save meal locally, navigate to Home
+  // "rejected" -> show rejection reasons inline, do NOT save
+  // "error"    -> show generic error alert, do NOT save
   const handleSave = async () => {
     try {
-      await submitFeedback(
+      const feedbackResponse = await submitFeedback(
         Date.now().toString(),
         result.detected_items,
         items,
       );
-    } catch (_) {
-      // Feedback errors are non-fatal; continue to save meal
+ 
+      // ── Rejected by Layer-1 validation ──────────────────
+      if (feedbackResponse.status === "rejected") {
+        setRejectionReasons(feedbackResponse.reasons || []);
+ 
+        Alert.alert(
+          "Correction Not Saved",
+          "Your corrections did not pass our validation checks. "
+            + "Please review the issues highlighted below and try again.",
+          [{ text: "OK" }],
+        );
+        return;   // stop here — do not save meal locally
+      }
+ 
+      // ── Server-side error ────────────────────────────────
+      if (feedbackResponse.status === "error") {
+        Alert.alert(
+          "Error",
+          "Something went wrong while saving your feedback. "
+            + "Please try again.",
+          [{ text: "OK" }],
+        );
+        return;
+      }
+ 
+      // ── Validation passed — clear any old rejection banner ─
+      setRejectionReasons([]);
+ 
+    } catch (networkError) {
+      // Network failure — feedback not critical, continue to save meal
+      console.error("Feedback submission failed:", networkError);
     }
-
+ 
+    // ── Save meal locally only after feedback is accepted ──
     try {
       await saveMeal({
         imageUri,
@@ -209,17 +239,16 @@ export default function EditResultsScreen({ navigation, route }) {
     } catch (e) {
       console.error("Failed to save meal:", e);
     }
-
+ 
     Alert.alert("Saved", "Your corrections have been saved.", [
       { text: "OK", onPress: () => navigation.navigate("Home") },
     ]);
   };
 
 
-  // --------------------------------------------------------
+
   // Reset all items and summary back to original model output.
   // Also clears any open portion editor.
-  // --------------------------------------------------------
   const handleReset = () => {
     setItems(result.detected_items.map((i) => ({ ...i })));
 
@@ -233,6 +262,7 @@ export default function EditResultsScreen({ navigation, route }) {
 
     setEditingIndex(null);
     setPortionInput("");
+    setRejectionReasons([]);
   };
 
 
@@ -351,6 +381,30 @@ export default function EditResultsScreen({ navigation, route }) {
             <MacroBox label="fat"     value={`${Math.round(summary.total_fat_g)}g`}       color={COLORS.macroFat}     />
           </View>
         </View>
+
+        {/*Layer-1 rejection banner
+        Shown only when the backend returns "rejected".
+        Lists every failed rule so the user knows exactly 
+        what to fix before resubmitting.*/}
+        {rejectionReasons.length > 0 && (
+          <View style={styles.rejectionBanner}>
+            <View style={styles.rejectionHeader}>
+              <Ionicons name="warning" size={18} color={COLORS.error} />
+              <Text style={styles.rejectionTitle}>
+                Correction Not Saved
+              </Text>
+            </View>
+            <Text style={styles.rejectionSubtitle}>
+              Please fix the following issues:
+            </Text>
+            {rejectionReasons.map((reason, i) => (
+              <View key={i} style={styles.rejectionReasonRow}>
+                <Text style={styles.rejectionBullet}>•</Text>
+                <Text style={styles.rejectionReasonText}>{reason}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Action buttons */}
         <View style={styles.buttonRow}>
@@ -504,6 +558,47 @@ const styles = StyleSheet.create({
   macroRow: {
     flexDirection: "row",
     gap: 8,
+  },
+  rejectionBanner: {
+    backgroundColor: "#FFEBEE",
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 14,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.error,
+  },
+  rejectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  rejectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: COLORS.error,
+  },
+  rejectionSubtitle: {
+    fontSize: 13,
+    color: COLORS.error,
+    marginBottom: 10,
+  },
+  rejectionReasonRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 6,
+  },
+  rejectionBullet: {
+    color: COLORS.error,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  rejectionReasonText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#B71C1C",
+    lineHeight: 20,
   },
   buttonRow: {
     flexDirection: "row",

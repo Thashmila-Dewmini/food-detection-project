@@ -41,8 +41,9 @@ class HealthResponse(BaseModel):
 
 
 class FeedbackResponse(BaseModel):
-    status: str
+    status: str   # "success", "rejected", or "error"
     message: str
+    reasons: List[str] = []  # populated when status == "rejected"
 
 
 class RecalculateResponse(BaseModel):
